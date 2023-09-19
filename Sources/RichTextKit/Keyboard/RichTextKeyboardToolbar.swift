@@ -126,7 +126,7 @@ public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: Vie
             HStack(spacing: style.itemSpacing) {
                 leadingViews
                 Spacer()
-                trailingViews
+//                trailingViews
             }
             .padding(10)
         }
