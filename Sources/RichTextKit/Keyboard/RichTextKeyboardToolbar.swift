@@ -57,7 +57,9 @@ public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: Vie
         @ViewBuilder leadingButtons: @escaping () -> LeadingButtons,
         @ViewBuilder trailingButtons: @escaping () -> TrailingButtons,
         @ViewBuilder richTextFormatSheet: @escaping (RichTextFormatSheet) -> FormatSheet,
-        alwaysVisible: Bool = false
+        alwaysVisible: Bool = false,
+        showAttachmentsBtn: Binding<Bool>,
+        onAttachmentBtnClicked: @escaping () -> Void
     ) {
         self._context = ObservedObject(wrappedValue: context)
         self.leadingActions = leadingActions
@@ -67,6 +69,8 @@ public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: Vie
         self.trailingButtons = trailingButtons
         self.richTextFormatSheet = richTextFormatSheet
         self.alwaysVisible = alwaysVisible
+        self._showAttachmentsBtn = showAttachmentsBtn
+        self.onAttachmentBtnClicked = onAttachmentBtnClicked
     }
 
     /**
@@ -88,7 +92,9 @@ public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: Vie
         trailingActions: [RichTextAction] = [.dismissKeyboard],
         @ViewBuilder leadingButtons: @escaping () -> LeadingButtons,
         @ViewBuilder trailingButtons: @escaping () -> TrailingButtons,
-        alwaysVisible: Bool = false
+        alwaysVisible: Bool = false,
+        showAttachmentsBtn: Binding<Bool>,
+        onAttachmentBtnClicked: @escaping () -> Void
     ) where FormatSheet == RichTextFormatSheet {
         self.init(
             context: context,
@@ -98,7 +104,9 @@ public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: Vie
             leadingButtons: leadingButtons,
             trailingButtons: trailingButtons,
             richTextFormatSheet: { $0 },
-            alwaysVisible: alwaysVisible
+            alwaysVisible: alwaysVisible,
+            showAttachmentsBtn: showAttachmentsBtn,
+            onAttachmentBtnClicked: onAttachmentBtnClicked
         )
     }
 
@@ -120,13 +128,28 @@ public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: Vie
     private var horizontalSizeClass
     
     private let alwaysVisible: Bool
+    @Binding var showAttachmentsBtn: Bool
+    private let onAttachmentBtnClicked: () -> Void
 
     public var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: style.itemSpacing) {
                 leadingViews
+                
+                if showAttachmentsBtn {
+                    divider
+                    Button(action: onAttachmentBtnClicked) {
+                        Image(systemName: "paperclip")
+                            .frame(maxHeight: nil)
+                            .foregroundColor(Color("Red1"))
+                            .contentShape(Rectangle())
+                    }
+                    .accessibilityLabel("Add Attachments")
+                }
+                
                 Spacer()
 //                trailingViews
+                
             }
             .padding(10)
         }
@@ -161,15 +184,15 @@ private extension RichTextKeyboardToolbar {
 
     @ViewBuilder
     var leadingViews: some View {
-        RichTextActionButtonStack(
-            context: context,
-            actions: leadingActions,
-            spacing: style.itemSpacing
-        )
-
-        leadingButtons()
-
-        divider
+//        RichTextActionButtonStack(
+//            context: context,
+//            actions: leadingActions,
+//            spacing: style.itemSpacing
+//        )
+//
+//        leadingButtons()
+//
+//        divider
         
         if #available(iOS 15.0, *) {
             RichTextStyleToggleGroup(
@@ -181,9 +204,9 @@ private extension RichTextKeyboardToolbar {
             )
         }
 
-        RichTextStyleToggleStack(context: context)
-            .keyboardShortcutsOnly(if: isCompact)
-            .opacity(0.0)
+//        RichTextStyleToggleStack(context: context)
+//            .keyboardShortcutsOnly(if: isCompact)
+//            .opacity(0.0)
     }
 
     @ViewBuilder
