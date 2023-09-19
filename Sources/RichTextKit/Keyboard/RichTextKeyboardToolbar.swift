@@ -164,17 +164,19 @@ private extension RichTextKeyboardToolbar {
         leadingButtons()
 
         divider
-
-        Button(action: presentFormatSheet) {
-            Image.richTextFormat
-                .contentShape(Rectangle())
+        
+        if #available(iOS 15.0, *) {
+            RichTextStyleToggleGroup(
+                context: context
+            )
+        } else {
+            RichTextStyleToggleStack(
+                context: context
+            )
         }
 
         RichTextStyleToggleStack(context: context)
             .keyboardShortcutsOnly(if: isCompact)
-
-        RichTextFontSizePickerStack(context: context)
-            .keyboardShortcutsOnly(if: true)
     }
 
     @ViewBuilder
