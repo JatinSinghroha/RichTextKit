@@ -312,7 +312,9 @@ struct RichTextKeyboardToolbar_Previews: PreviewProvider {
                     context: context,
                     leadingButtons: {},
                     trailingButtons: {},
-                    alwaysVisible: false
+                    alwaysVisible: false,
+                    showAttachmentsBtn: .constant(true),
+                    onAttachmentBtnClicked: {}
                 )
             }
         }
