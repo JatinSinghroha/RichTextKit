@@ -56,7 +56,8 @@ public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: Vie
         trailingActions: [RichTextAction] = [.dismissKeyboard],
         @ViewBuilder leadingButtons: @escaping () -> LeadingButtons,
         @ViewBuilder trailingButtons: @escaping () -> TrailingButtons,
-        @ViewBuilder richTextFormatSheet: @escaping (RichTextFormatSheet) -> FormatSheet
+        @ViewBuilder richTextFormatSheet: @escaping (RichTextFormatSheet) -> FormatSheet,
+        alwaysVisible: Bool = false
     ) {
         self._context = ObservedObject(wrappedValue: context)
         self.leadingActions = leadingActions
@@ -65,6 +66,7 @@ public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: Vie
         self.leadingButtons = leadingButtons
         self.trailingButtons = trailingButtons
         self.richTextFormatSheet = richTextFormatSheet
+        self.alwaysVisible = alwaysVisible
     }
 
     /**
@@ -85,7 +87,8 @@ public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: Vie
         leadingActions: [RichTextAction] = [.undo, .redo, .copy],
         trailingActions: [RichTextAction] = [.dismissKeyboard],
         @ViewBuilder leadingButtons: @escaping () -> LeadingButtons,
-        @ViewBuilder trailingButtons: @escaping () -> TrailingButtons
+        @ViewBuilder trailingButtons: @escaping () -> TrailingButtons,
+        alwaysVisible: Bool = false
     ) where FormatSheet == RichTextFormatSheet {
         self.init(
             context: context,
@@ -94,7 +97,8 @@ public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: Vie
             trailingActions: trailingActions,
             leadingButtons: leadingButtons,
             trailingButtons: trailingButtons,
-            richTextFormatSheet: { $0 }
+            richTextFormatSheet: { $0 },
+            alwaysVisible: alwaysVisible
         )
     }
 
@@ -114,6 +118,8 @@ public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: Vie
 
     @Environment(\.horizontalSizeClass)
     private var horizontalSizeClass
+    
+    private let alwaysVisible: Bool
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -133,9 +139,9 @@ public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: Vie
                 .overlay(Color.white.opacity(0.2))
                 .shadow(color: style.shadowColor, radius: style.shadowRadius, x: 0, y: 0)
         )
-        .opacity(context.isEditingText ? 1 : 0)
-        .offset(y: context.isEditingText ? 0 : style.toolbarHeight)
-        .frame(height: context.isEditingText ? nil : 0)
+        .opacity(context.isEditingText || alwaysVisible ? 1 : 0)
+        .offset(y: context.isEditingText || alwaysVisible ? 0 : style.toolbarHeight)
+        .frame(height: context.isEditingText || alwaysVisible ? nil : 0)
         .sheet(isPresented: $isFormatSheetPresented) {
             richTextFormatSheet(RichTextFormatSheet(context: context))
         }
@@ -177,6 +183,7 @@ private extension RichTextKeyboardToolbar {
 
         RichTextStyleToggleStack(context: context)
             .keyboardShortcutsOnly(if: isCompact)
+            .opacity(0.0)
     }
 
     @ViewBuilder
@@ -281,7 +288,8 @@ struct RichTextKeyboardToolbar_Previews: PreviewProvider {
                 RichTextKeyboardToolbar(
                     context: context,
                     leadingButtons: {},
-                    trailingButtons: {}
+                    trailingButtons: {},
+                    alwaysVisible: false
                 )
             }
         }
