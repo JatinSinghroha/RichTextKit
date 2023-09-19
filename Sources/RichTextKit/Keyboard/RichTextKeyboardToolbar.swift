@@ -35,7 +35,7 @@ import SwiftUI
  this custom toolbar instead, which by default will show and
  hide itself as you begin and end editing the text.
  */
-public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: View, FormatSheet: View>: View {
+public struct RichTextKeyboardToolbar<V: View, LeadingButtons: View, TrailingButtons: View, FormatSheet: View>: View {
 
     /**
      Create a rich text keyboard toolbar.
@@ -58,8 +58,7 @@ public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: Vie
         @ViewBuilder trailingButtons: @escaping () -> TrailingButtons,
         @ViewBuilder richTextFormatSheet: @escaping (RichTextFormatSheet) -> FormatSheet,
         alwaysVisible: Bool = false,
-        showAttachmentsBtn: Binding<Bool>,
-        onAttachmentBtnClicked: @escaping () -> Void
+        @ViewBuilder extraContent: @escaping () -> V
     ) {
         self._context = ObservedObject(wrappedValue: context)
         self.leadingActions = leadingActions
@@ -69,8 +68,7 @@ public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: Vie
         self.trailingButtons = trailingButtons
         self.richTextFormatSheet = richTextFormatSheet
         self.alwaysVisible = alwaysVisible
-        self._showAttachmentsBtn = showAttachmentsBtn
-        self.onAttachmentBtnClicked = onAttachmentBtnClicked
+        self.extraContent = extraContent
     }
 
     /**
@@ -93,8 +91,7 @@ public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: Vie
         @ViewBuilder leadingButtons: @escaping () -> LeadingButtons,
         @ViewBuilder trailingButtons: @escaping () -> TrailingButtons,
         alwaysVisible: Bool = false,
-        showAttachmentsBtn: Binding<Bool>,
-        onAttachmentBtnClicked: @escaping () -> Void
+        @ViewBuilder extraContent: @escaping () -> V
     ) where FormatSheet == RichTextFormatSheet {
         self.init(
             context: context,
@@ -105,8 +102,7 @@ public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: Vie
             trailingButtons: trailingButtons,
             richTextFormatSheet: { $0 },
             alwaysVisible: alwaysVisible,
-            showAttachmentsBtn: showAttachmentsBtn,
-            onAttachmentBtnClicked: onAttachmentBtnClicked
+            extraContent: extraContent
         )
     }
 
@@ -128,24 +124,14 @@ public struct RichTextKeyboardToolbar<LeadingButtons: View, TrailingButtons: Vie
     private var horizontalSizeClass
     
     private let alwaysVisible: Bool
-    @Binding var showAttachmentsBtn: Bool
-    private let onAttachmentBtnClicked: () -> Void
+    private let extraContent: () -> V
 
     public var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: style.itemSpacing) {
                 leadingViews
                 
-                if showAttachmentsBtn {
-                    divider
-                    Button(action: onAttachmentBtnClicked) {
-                        Image(systemName: "paperclip")
-                            .frame(maxHeight: nil)
-                            .foregroundColor(Color("Red1"))
-                            .contentShape(Rectangle())
-                    }
-                    .accessibilityLabel("Add Attachments")
-                }
+                extraContent()
                 
                 Spacer()
 //                trailingViews
@@ -308,13 +294,11 @@ struct RichTextKeyboardToolbar_Previews: PreviewProvider {
                     .cornerRadius(10)
                     .padding()
                     .background(Color.gray.ignoresSafeArea())
-                RichTextKeyboardToolbar(
+                RichTextKeyboardToolbar<EmptyView, EmptyView, EmptyView, RichTextFormatSheet>(
                     context: context,
                     leadingButtons: {},
                     trailingButtons: {},
-                    alwaysVisible: false,
-                    showAttachmentsBtn: .constant(true),
-                    onAttachmentBtnClicked: {}
+                    alwaysVisible: false, extraContent: {}
                 )
             }
         }
