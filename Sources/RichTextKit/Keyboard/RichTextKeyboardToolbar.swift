@@ -58,6 +58,7 @@ public struct RichTextKeyboardToolbar<V: View, LeadingButtons: View, TrailingBut
         @ViewBuilder trailingButtons: @escaping () -> TrailingButtons,
         @ViewBuilder richTextFormatSheet: @escaping (RichTextFormatSheet) -> FormatSheet,
         alwaysVisible: Bool = false,
+        additionalStyleButtons: [AdditionalStyleButtons] = [],
         @ViewBuilder extraContent: @escaping () -> V
     ) {
         self._context = ObservedObject(wrappedValue: context)
@@ -68,6 +69,7 @@ public struct RichTextKeyboardToolbar<V: View, LeadingButtons: View, TrailingBut
         self.trailingButtons = trailingButtons
         self.richTextFormatSheet = richTextFormatSheet
         self.alwaysVisible = alwaysVisible
+        self.additionalStyleButtons = additionalStyleButtons
         self.extraContent = extraContent
     }
 
@@ -91,6 +93,7 @@ public struct RichTextKeyboardToolbar<V: View, LeadingButtons: View, TrailingBut
         @ViewBuilder leadingButtons: @escaping () -> LeadingButtons,
         @ViewBuilder trailingButtons: @escaping () -> TrailingButtons,
         alwaysVisible: Bool = false,
+        additionalStyleButtons: [AdditionalStyleButtons] = [],
         @ViewBuilder extraContent: @escaping () -> V
     ) where FormatSheet == RichTextFormatSheet {
         self.init(
@@ -102,6 +105,7 @@ public struct RichTextKeyboardToolbar<V: View, LeadingButtons: View, TrailingBut
             trailingButtons: trailingButtons,
             richTextFormatSheet: { $0 },
             alwaysVisible: alwaysVisible,
+            additionalStyleButtons: additionalStyleButtons,
             extraContent: extraContent
         )
     }
@@ -124,16 +128,26 @@ public struct RichTextKeyboardToolbar<V: View, LeadingButtons: View, TrailingBut
     private var horizontalSizeClass
     
     private let alwaysVisible: Bool
+    private let additionalStyleButtons: [AdditionalStyleButtons]
     private let extraContent: () -> V
 
     public var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: style.itemSpacing) {
-                leadingViews
+                if #available(iOS 15.0, *) {
+                    RichTextStyleToggleGroup(
+                        context: context,
+                        additionalStyleButtons: additionalStyleButtons
+                    )
+                } else {
+                    RichTextStyleToggleStack(
+                        context: context
+                    )
+                }
                 
+                Spacer(minLength: 20)
                 extraContent()
                 
-                Spacer()
 //                trailingViews
                 
             }

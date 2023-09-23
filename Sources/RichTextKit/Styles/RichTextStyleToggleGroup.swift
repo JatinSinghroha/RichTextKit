@@ -35,17 +35,20 @@ public struct RichTextStyleToggleGroup: View {
         context: RichTextContext,
         styles: [RichTextStyle] = .all,
         greedy: Bool = true,
-        buttonStyle: RichTextStyleButton.Style = .standard
+        buttonStyle: RichTextStyleButton.Style = .standard,
+        additionalStyleButtons: [AdditionalStyleButtons] = []
     ) {
         self._context = ObservedObject(wrappedValue: context)
         self.isGreedy = greedy
         self.styles = styles
         self.buttonStyle = buttonStyle
+        self.additionalStyleButtons = additionalStyleButtons
     }
 
     private let styles: [RichTextStyle]
     private let isGreedy: Bool
     private let buttonStyle: RichTextStyleButton.Style
+    private let additionalStyleButtons: [AdditionalStyleButtons]
 
     private var groupWidth: CGFloat? {
         if isGreedy { return nil }
@@ -70,7 +73,36 @@ public struct RichTextStyleToggleGroup: View {
                     fillVertically: true
                 )
             }
+            ForEach(additionalStyleButtons.indices, id: \.self) { index in
+                let button = self.additionalStyleButtons[index]
+                Button(action: button.action) {
+                    button.image
+                        .frame(maxHeight: nil)
+                        .foregroundColor(button.foregroundColor)
+                        .contentShape(Rectangle())
+                }
+                .accessibilityLabel(button.label)
+            }
         }.frame(width: groupWidth)
+    }
+}
+
+public struct AdditionalStyleButtons {
+    let action: () -> Void
+    let image: Image
+    let label: String
+    let foregroundColor: Color
+    
+    public init(
+        image: Image,
+        label: String,
+        foregroundColor: Color = .primary,
+        action: @escaping () -> Void
+    ) {
+        self.image = image
+        self.label = label
+        self.foregroundColor = foregroundColor
+        self.action = action
     }
 }
 
