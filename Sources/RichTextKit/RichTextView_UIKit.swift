@@ -170,6 +170,7 @@ open class RichTextView: UITextView, RichTextViewComponent {
         text.autosizeImageAttachments(maxSize: imageAttachmentMaxSize)
         attributedString = text
         allowsEditingTextAttributes = false
+        autocorrectionType = .no
         autocapitalizationType = .sentences
         backgroundColor = .clear
         richTextDataFormat = format
